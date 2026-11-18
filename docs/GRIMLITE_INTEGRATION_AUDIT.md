@@ -47,3 +47,28 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 - No Grimlite UI or session code was copied.
 - The cross-cell hunt and all-cell map-item discovery changes have not been compiled or tested in AQW yet. Quest requirement parsing and autonomous story progression remain unimplemented. The existing `Quest.RequiredItems` field describes turn-in items, but the complete server-side objective requirement payload still needs to be traced before a generic quest planner can be implemented safely.
 - The branch is intentionally separate from `main` so implementation can be reviewed without risking the working version.
+
+
+## Update: map-item discovery with cell locations
+
+The discovery layer now exposes `World.MapItemLocationsInMap` and
+`World.MapItemLocationsForQuest(int questId)`. Each result contains the
+`CellName` and the existing `MapItem` object. This preserves the location
+needed by a future collector to enter the correct room before calling
+`Player.GetMapItem(item.ID)`.
+
+The existing flattened `World.MapItemsInMap` and `World.MapItemsForQuest`
+views remain available for compatibility.
+
+Important limitations:
+- This is still discovery, not automatic collection. No map item is clicked by
+  these methods.
+- Item IDs are scoped by cell in the discovery result; the collector should
+  re-read `World.MapItems` after entering a cell and use the live ID from that
+  cell before clicking.
+- Quest completion should be verified through the live quest state
+  (`Player.Quests.CanComplete` / `IsInProgress`) rather than assuming that
+  a click succeeded.
+- The quest model's `RequiredItems` maps to the server's `turnin` payload;
+  it must not be treated as a complete representation of farm objectives.
+- Build and in-game validation are still pending.
