@@ -318,6 +318,7 @@
     <Compile Include="Grimoire.Botting.Commands.Misc\RegularExpression.cs" />
     <Compile Include="Grimoire.Botting.Commands.Quest\CmdQuestlist.cs" />
     <Compile Include="Grimoire.Botting.Commands.Quest\CmdAcceptQuest.cs" />
+    <Compile Include="Grimoire.Botting.Commands.Quest\CmdNoobshireStory.cs" />
     <Compile Include="Grimoire.Botting.Commands.Quest\CmdCompleteQuest.cs" />
     <Compile Include="Grimoire.Botting.Commands\ItemType.cs" />
     <Compile Include="Grimoire.Botting\Bot.cs" />
