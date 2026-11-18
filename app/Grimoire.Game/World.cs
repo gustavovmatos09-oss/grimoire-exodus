@@ -237,6 +237,47 @@ namespace Grimoire.Game
 
         public static Cell CellInfo(string cell) => Flash.Call<Cell>("GetCellInfo", cell);
 
+        /// <summary>
+        /// Scans every named cell in the current map and returns its clickable quest/map items.
+        /// Item IDs are deduplicated because AQW maps may expose the same component more than once.
+        /// </summary>
+        public static List<MapItem> MapItemsInMap
+        {
+            get
+            {
+                var result = new List<MapItem>();
+                var seen = new HashSet<int>();
+                foreach (string cellName in Cells ?? Array.Empty<string>())
+                {
+                    if (string.IsNullOrWhiteSpace(cellName)
+                        || cellName.Equals("Wait", StringComparison.OrdinalIgnoreCase)
+                        || cellName.Equals("Blank", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    Cell cell = CellInfo(cellName);
+                    if (cell?.MapItems == null)
+                        continue;
+
+                    foreach (MapItem item in cell.MapItems)
+                    {
+                        if (item != null && item.ID > 0 && seen.Add(item.ID))
+                            result.Add(item);
+                    }
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Returns only clickable map items tagged for the specified quest.
+        /// </summary>
+        public static List<MapItem> MapItemsForQuest(int questId)
+        {
+            return MapItemsInMap
+                .Where(item => item.QuestID == questId)
+                .ToList();
+        }
+
         public static List<Cell> AllCellInfo => Flash.Call<List<Cell>>("GetAllPads", true);
 
         public static void ScanMap() => Flash.Call("GetAllPads", false);
