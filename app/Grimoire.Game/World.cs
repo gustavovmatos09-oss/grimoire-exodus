@@ -368,4 +368,125 @@ namespace Grimoire.Game
             };
         }
     }
+    /// <summary>
+    /// Performs bounded, quest-scoped collection of clickable map items.
+    /// Callers must supply an item predicate and a live completion check so the
+    /// collector never clicks unrelated objects or assumes a click succeeded.
+    /// </summary>
+    public static class MapItemCollector
+    {
+        public static async Task<int> CollectForQuest(
+            int questId,
+            Func<MapItem, bool> isRequiredItem,
+            Func<bool> objectiveComplete,
+            Func<bool> keepRunning,
+            int maxCellVisits = 12)
+        {
+            if (questId <= 0)
+                throw new ArgumentOutOfRangeException("questId");
+            if (isRequiredItem == null)
+                throw new ArgumentNullException("isRequiredItem");
+            if (objectiveComplete == null)
+                throw new ArgumentNullException("objectiveComplete");
+            if (keepRunning == null)
+                throw new ArgumentNullException("keepRunning");
+
+            int collectedAttempts = 0;
+            var visitedCells = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string originalCell = Player.Cell;
+            string originalPad = Player.Pad;
+
+            while (keepRunning() && !objectiveComplete() && visitedCells.Count < maxCellVisits)
+            {
+                // Re-scan on every iteration because the map can change while collecting.
+                List<MapItemLocation> candidates = World.MapItemLocationsForQuest(questId)
+                    .Where(location => location != null
+                        && location.Item != null
+                        && !string.IsNullOrWhiteSpace(location.CellName)
+                        && isRequiredItem(location.Item)
+                        && !visitedCells.Contains(location.CellName))
+                    .ToList();
+
+                if (candidates.Count == 0)
+                    break;
+
+                MapItemLocation destination = candidates[0];
+                visitedCells.Add(destination.CellName);
+
+                if (!string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase))
+                {
+                    Cell cellInfo = World.CellInfo(destination.CellName);
+                    string pad = cellInfo?.Pads?.FirstOrDefault();
+                    if (string.IsNullOrWhiteSpace(pad))
+                        pad = "Spawn";
+
+                    Player.MoveToCell(destination.CellName, pad);
+                    int waitCount = 0;
+                    while (keepRunning()
+                        && !string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase)
+                        && waitCount++ < 30)
+                    {
+                        await Task.Delay(250);
+                    }
+                }
+
+                if (!keepRunning() || objectiveComplete())
+                    break;
+
+                if (!string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // IDs can be regenerated between GetCellInfo and entering the cell.
+                // Always use the live ID returned for the current cell.
+                List<MapItem> liveItems = World.MapItems;
+                MapItem liveTarget = liveItems.FirstOrDefault(item =>
+                    item != null
+                    && item.QuestID == questId
+                    && isRequiredItem(item));
+
+                if (liveTarget == null)
+                    continue;
+
+                int actionWait = 0;
+                while (keepRunning()
+                    && !World.IsActionAvailable(LockActions.GetMapItem)
+                    && actionWait++ < 20)
+                {
+                    await Task.Delay(250);
+                }
+
+                if (!keepRunning() || objectiveComplete())
+                    break;
+
+                if (!World.IsActionAvailable(LockActions.GetMapItem))
+                    continue;
+
+                Player.GetMapItem(liveTarget.ID);
+                collectedAttempts++;
+
+                // Give the server time to update the quest/inventory state.
+                int verifyWait = 0;
+                while (keepRunning()
+                    && !objectiveComplete()
+                    && verifyWait++ < 12)
+                {
+                    await Task.Delay(250);
+                }
+            }
+
+            // Restore the starting cell only when the objective remains incomplete
+            // and the bot is still running; otherwise leave the player at the last
+            // useful location for the next story action.
+            if (keepRunning()
+                && !objectiveComplete()
+                && !string.IsNullOrWhiteSpace(originalCell)
+                && !string.Equals(Player.Cell, originalCell, StringComparison.OrdinalIgnoreCase))
+            {
+                Player.MoveToCell(originalCell, originalPad);
+            }
+
+            return collectedAttempts;
+        }
+    }
+
 }
