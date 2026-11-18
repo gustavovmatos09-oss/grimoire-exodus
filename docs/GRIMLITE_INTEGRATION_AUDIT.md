@@ -22,7 +22,7 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 - `World.GetMapCells`, `World.CellInfo(cell)`, `World.AllCellInfo`, and `World.ScanMap()` already expose map/cell scanning hooks.
 - `Player.AcceptQuest` and `Player.CompleteQuest` already exist.
 - `CmdMapItem` / `CmdMapItem2` already collect a map item when its ID is known.
-- The ActionScript `GetMapItems` callback already exists and returns `ID`, `name`, `qID`, `itemName`, and `collectMsg` for clickable items in the current cell. Exodus had not exposed this callback as a typed C# model.
+- The ActionScript `GetMapItems` callback already exists and returns `ID`, `name`, `qID`, `itemName`, and `collectMsg` for clickable items in the current cell. The existing `MapItem` model is in `Grimoire.Game.Data.Map`; it must be reused rather than duplicated.
 - `CmdKillFor` already loops until inventory/temporary inventory quantity is reached and includes Ruffle-specific target-progress recovery.
 
 ### Confirmed behavior to address
@@ -42,8 +42,8 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 ## Current status
 
 - First implementation pass added to `CmdKill.ExecuteCore`: when the target is not present in the configured/current bot cell, it searches the current map's monster collection for a living monster with the requested name, moves to that monster's cell, and waits for the target to become available before attacking.
-- Added `Grimoire.Game.Data.MapItem` and `World.MapItems`, exposing the existing ActionScript `GetMapItems` callback as typed C# data (`ID`, `name`, quest ID, item name, collect message). The project file includes the new model.
-- `World.MapItems` currently describes items in the current cell only. A safe all-cell collector still needs to use `CellInfo`/map scanning, verify quest association and inventory progress, and avoid clicking unrelated objects.
+- Added `World.MapItemsInMap` and `World.MapItemsForQuest(int questId)`. These scan all named cells through the existing `CellInfo` callback, reuse the existing `MapItem` DTO, deduplicate IDs, and filter by the map item's quest ID.
+- This is item discovery, not collection yet. A safe collector still needs to navigate to each item's cell, click the matching item, and verify inventory/quest progress before retrying.
 - No Grimlite UI or session code was copied.
-- Neither change has been compiled or tested in AQW yet. The full quest requirement/story manager remains unimplemented.
+- The cross-cell hunt and all-cell map-item discovery changes have not been compiled or tested in AQW yet. Quest requirement parsing and autonomous story progression remain unimplemented. The existing `Quest.RequiredItems` field describes turn-in items, but the complete server-side objective requirement payload still needs to be traced before a generic quest planner can be implemented safely.
 - The branch is intentionally separate from `main` so implementation can be reviewed without risking the working version.
