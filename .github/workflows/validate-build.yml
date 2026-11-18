@@ -23,6 +23,19 @@ jobs:
       - name: Configure MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Validate Swordhaven bot profile defaults
+        shell: pwsh
+        run: |
+          $profile = Get-Content bots/Swordhaven-Rank10.gbot -Raw | ConvertFrom-Json
+          foreach ($field in @('SkillDelay','RelogDelay','BotDelay','WalkSpeed','RestMp','RestHp','DropDelay')) {
+            if ($null -eq $profile.$field -or [decimal]$profile.$field -le 0) {
+              throw "Invalid numeric profile field: $field"
+            }
+          }
+          if ($profile.Commands.'$values'.Count -ne 1 -or $profile.Commands.'$values'[0].'$type' -notlike '*CmdSwordhavenRep*') {
+            throw 'Swordhaven custom command is missing from the profile.'
+          }
+
       - name: Build Release
         shell: pwsh
         run: .\\exodus.ps1 build -Configuration Release
