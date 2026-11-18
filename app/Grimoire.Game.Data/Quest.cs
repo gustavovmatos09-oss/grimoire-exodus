@@ -205,6 +205,21 @@ namespace Grimoire.Game.Data
             }
         }
 
+        /// <summary>
+        /// True only when this quest is not member-only and the AQW client
+        /// currently reports it as available to this character.
+        /// Story automation must use this guard before accepting a quest.
+        /// </summary>
+        public bool CanAccept
+        {
+            get
+            {
+                return !IsMemberOnly
+                    && !IsInProgress
+                    && Flash.Call<bool>("IsAvailable", new string[1] { Id.ToString() });
+            }
+        }
+
         public void Accept()
         {
             Flash.Call("Accept", Id.ToString());
@@ -254,6 +269,8 @@ namespace Grimoire.Game.Data
         public bool ShouldSerializeIsInProgress => false;
 
         public bool ShouldSerializeCanComplete => false;
+
+        public bool ShouldSerializeCanAccept => false;
         #endregion
     }
 }
