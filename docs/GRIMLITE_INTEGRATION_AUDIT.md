@@ -22,6 +22,7 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 - `World.GetMapCells`, `World.CellInfo(cell)`, `World.AllCellInfo`, and `World.ScanMap()` already expose map/cell scanning hooks.
 - `Player.AcceptQuest` and `Player.CompleteQuest` already exist.
 - `CmdMapItem` / `CmdMapItem2` already collect a map item when its ID is known.
+- The ActionScript `GetMapItems` callback already exists and returns `ID`, `name`, `qID`, `itemName`, and `collectMsg` for clickable items in the current cell. Exodus had not exposed this callback as a typed C# model.
 - `CmdKillFor` already loops until inventory/temporary inventory quantity is reached and includes Ruffle-specific target-progress recovery.
 
 ### Confirmed behavior to address
@@ -41,6 +42,8 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 ## Current status
 
 - First implementation pass added to `CmdKill.ExecuteCore`: when the target is not present in the configured/current bot cell, it searches the current map's monster collection for a living monster with the requested name, moves to that monster's cell, and waits for the target to become available before attacking.
-- This reuses Exodus's existing `World.Monsters`, `Monster.Name`, `Monster.Cell`, `Monster.Alive`, and `Player.MoveToCell` APIs. No Grimlite UI or session code was copied.
-- This is a first pass only: it has not been compiled or tested in AQW. The map-item discovery bridge and full quest requirement/story manager remain unimplemented.
+- Added `Grimoire.Game.Data.MapItem` and `World.MapItems`, exposing the existing ActionScript `GetMapItems` callback as typed C# data (`ID`, `name`, quest ID, item name, collect message). The project file includes the new model.
+- `World.MapItems` currently describes items in the current cell only. A safe all-cell collector still needs to use `CellInfo`/map scanning, verify quest association and inventory progress, and avoid clicking unrelated objects.
+- No Grimlite UI or session code was copied.
+- Neither change has been compiled or tested in AQW yet. The full quest requirement/story manager remains unimplemented.
 - The branch is intentionally separate from `main` so implementation can be reviewed without risking the working version.
