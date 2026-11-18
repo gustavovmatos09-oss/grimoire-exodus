@@ -33,9 +33,9 @@ namespace Grimoire.Botting.Commands.Quest
         private static readonly Step[] Steps =
         {
             new Step { QuestId = 3065, Title = "Boy Fiends and Ghoul Fiends", Monster = "Dungeon Fiend",
-                ItemOne = "Hair Bow", QuantityOne = 5, ItemTwo = "Bow Tie", QuantityTwo = 5 },
-            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider", KillCounter = true },
-            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith", KillCounter = true }
+                ItemOne = "Dungeon Fiend Hair Bow", QuantityOne = 5, ItemTwo = "Dungeon Fiend Bow Tie", QuantityTwo = 5 },
+            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider", ItemOne = "Eradicated Arachnid", QuantityOne = 10 },
+            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith", ItemOne = "Castle Wraith Defeated", QuantityOne = 10 }
         };
 
         private const int MaxKillsPerObjective = 300;
@@ -162,20 +162,28 @@ namespace Grimoire.Botting.Commands.Quest
 
         private static bool HasRequiredItems(Step step)
         {
-            return (string.IsNullOrEmpty(step.ItemOne) || ItemQuantity(step.ItemOne) >= step.QuantityOne) &&
-                   (string.IsNullOrEmpty(step.ItemTwo) || ItemQuantity(step.ItemTwo) >= step.QuantityTwo);
+            return (string.IsNullOrEmpty(step.ItemOne) || HasItem(step.ItemOne, step.QuantityOne)) &&
+                   (string.IsNullOrEmpty(step.ItemTwo) || HasItem(step.ItemTwo, step.QuantityTwo));
         }
 
         private static int GetRelevantProgress(Step step)
         {
-            if (step.KillCounter) return Player.Quests.CanComplete(step.QuestId) ? 1 : 0;
-            return ItemQuantity(step.ItemOne) + ItemQuantity(step.ItemTwo);
+            if (Player.Quests.CanComplete(step.QuestId)) return 1;
+            return (string.IsNullOrEmpty(step.ItemOne) ? 0 : (HasItem(step.ItemOne, step.QuantityOne) ? step.QuantityOne : ItemQuantity(step.ItemOne))) +
+                   (string.IsNullOrEmpty(step.ItemTwo) ? 0 : (HasItem(step.ItemTwo, step.QuantityTwo) ? step.QuantityTwo : ItemQuantity(step.ItemTwo)));
+        }
+
+        private static bool HasItem(string name, int quantity)
+        {
+            return Player.Inventory.ContainsItem(name, quantity.ToString()) ||
+                   Player.TempInventory.ContainsItem(name, quantity.ToString());
         }
 
         private static int ItemQuantity(string name)
         {
-            return Player.Inventory.Items?.Where(i => i != null &&
+            int inventoryQuantity = Player.Inventory.Items?.Where(i => i != null &&
                 string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase)).Sum(i => i.Quantity) ?? 0;
+            return inventoryQuantity;
         }
 
         private static async Task<bool> WaitFor(IBotEngine instance, Func<bool> condition, int checks)
