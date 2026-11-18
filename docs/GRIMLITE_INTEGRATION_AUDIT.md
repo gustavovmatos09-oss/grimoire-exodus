@@ -95,3 +95,14 @@ to quest-specific objective definitions and the story runner.
 
 Build and in-game validation remain pending; do not treat this as a tested
 release.
+
+
+## Quest data model findings (18 Nov 2026)
+
+The ActionScript bridge `Quest.getQuestTree()` clones the AQW quest-tree object and returns both `turnin` and `reqd` data. It separately resolves turn-in item names into `RequiredItems`, and the quest validation routine checks `reqd` as prerequisite/validation items. These fields must not be conflated:
+
+- `turnin` / C# `Quest.RequiredItems`: items required to turn in the quest.
+- `reqd` / C# `Quest.RequiredPrerequisites`: items checked by the client's quest validation before the quest is available/valid.
+- Neither field describes all monster-kill objectives or clickable map-item objectives.
+
+The C# `Quest` model now exposes `reqd` as `RequiredPrerequisites` using the existing `QuestReqConverter`. This is a data-model improvement only; it does not claim automatic objective discovery or complete story automation. Story profiles still need explicit, verified objective definitions for farm and map-click stages, plus runtime validation.
