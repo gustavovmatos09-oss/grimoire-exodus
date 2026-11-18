@@ -3,6 +3,7 @@ using Grimoire.Botting.Commands.Combat;
 using Grimoire.Botting.Commands.Map;
 using Grimoire.Game;
 using Grimoire.Game.Data;
+using GameQuest = Grimoire.Game.Data.Quest;
 using Grimoire.UI;
 using System;
 using System.Linq;
@@ -69,7 +70,7 @@ namespace Grimoire.Botting.Commands.Quest
                 {
                     if (!instance.IsRunning || !Player.IsLoggedIn) return;
 
-                    Quest quest = await LoadQuest(instance, step.QuestId);
+                    GameQuest quest = await LoadQuest(instance, step.QuestId);
                     if (quest == null)
                     {
                         Log("Não foi possível carregar a quest " + step.QuestId + ". Bot pausado para evitar loop.");
@@ -150,9 +151,9 @@ namespace Grimoire.Botting.Commands.Quest
             }
         }
 
-        private static async Task<Quest> LoadQuest(IBotEngine instance, int id)
+        private static async Task<GameQuest> LoadQuest(IBotEngine instance, int id)
         {
-            Quest quest = Player.Quests.LoadedQuests?.FirstOrDefault(q => q.Id == id);
+            GameQuest quest = Player.Quests.LoadedQuests?.FirstOrDefault(q => q.Id == id);
             if (quest != null) return quest;
             Player.Quests.GetQuest(id);
             await WaitFor(instance, () => Player.Quests.LoadedQuests != null &&
