@@ -40,4 +40,7 @@ Grimlite Rev is a revision of the original Grimoire. Its README documents the ap
 
 ## Current status
 
-This commit records the source audit and integration plan only. No runtime feature has been ported or tested yet. The branch is intentionally separate from `main` so implementation can be reviewed without risking the working version.
+- First implementation pass added to `CmdKill.ExecuteCore`: when the target is not present in the configured/current bot cell, it searches the current map's monster collection for a living monster with the requested name, moves to that monster's cell, and waits for the target to become available before attacking.
+- This reuses Exodus's existing `World.Monsters`, `Monster.Name`, `Monster.Cell`, `Monster.Alive`, and `Player.MoveToCell` APIs. No Grimlite UI or session code was copied.
+- This is a first pass only: it has not been compiled or tested in AQW. The map-item discovery bridge and full quest requirement/story manager remain unimplemented.
+- The branch is intentionally separate from `main` so implementation can be reviewed without risking the working version.
