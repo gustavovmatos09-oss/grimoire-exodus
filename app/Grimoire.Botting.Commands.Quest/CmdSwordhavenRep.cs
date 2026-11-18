@@ -28,14 +28,14 @@ namespace Grimoire.Botting.Commands.Quest
             public bool KillCounter;
         }
 
-        // Quest IDs and objectives are based on the in-game quest descriptions supplied
-        // by the user. The client quest state remains the authority for completion.
+        // Quest IDs are cross-checked against public Swordhaven quest references.
+        // AQW client quest state is the authority for objective completion; no item-name guessing.
         private static readonly Step[] Steps =
         {
             new Step { QuestId = 3065, Title = "Boy Fiends and Ghoul Fiends", Monster = "Dungeon Fiend",
-                ItemOne = "Dungeon Fiend Hair Bow", QuantityOne = 5, ItemTwo = "Dungeon Fiend Bow Tie", QuantityTwo = 5 },
-            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider", ItemOne = "Eradicated Arachnid", QuantityOne = 10 },
-            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith", ItemOne = "Castle Wraith Defeated", QuantityOne = 10 }
+                KillCounter = true },
+            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider", KillCounter = true },
+            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith", KillCounter = true }
         };
 
         private const int MaxKillsPerObjective = 300;
