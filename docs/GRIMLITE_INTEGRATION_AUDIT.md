@@ -72,3 +72,26 @@ Important limitations:
 - The quest model's `RequiredItems` maps to the server's `turnin` payload;
   it must not be treated as a complete representation of farm objectives.
 - Build and in-game validation are still pending.
+
+## Update: bounded quest-scoped map-item collector
+
+Added `MapItemCollector.CollectForQuest` as a reusable asynchronous collection
+primitive. The caller must provide:
+- the quest ID;
+- a predicate identifying only the map items actually required;
+- a live objective-completion check (for example, inventory/quest progress);
+- a running/cancellation predicate.
+
+The collector scans candidate cells, moves to a candidate cell, waits for the
+cell transition, re-reads live map items in that cell (so it does not trust
+stale IDs from the scan), and clicks only items matching both the quest ID and
+the caller's required-item predicate. It handles multiple matching objects in
+one cell and applies bounded cell/item attempts.
+
+This is a reusable engine primitive, not yet wired into a story profile or a
+new BotManager button. No Noobshire objective predicate has been asserted from
+the game server's live quest data yet. The next step is to connect this safely
+to quest-specific objective definitions and the story runner.
+
+Build and in-game validation remain pending; do not treat this as a tested
+release.
