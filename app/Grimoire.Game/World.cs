@@ -380,7 +380,8 @@ namespace Grimoire.Game
             Func<MapItem, bool> isRequiredItem,
             Func<bool> objectiveComplete,
             Func<bool> keepRunning,
-            int maxCellVisits = 12)
+            int maxCellVisits = 12,
+            int maxItemAttempts = 40)
         {
             if (questId <= 0)
                 throw new ArgumentOutOfRangeException("questId");
@@ -396,9 +397,11 @@ namespace Grimoire.Game
             string originalCell = Player.Cell;
             string originalPad = Player.Pad;
 
-            while (keepRunning() && !objectiveComplete() && visitedCells.Count < maxCellVisits)
+            while (keepRunning()
+                && !objectiveComplete()
+                && visitedCells.Count < maxCellVisits
+                && collectedAttempts < maxItemAttempts)
             {
-                // Re-scan on every iteration because the map can change while collecting.
                 List<MapItemLocation> candidates = World.MapItemLocationsForQuest(questId)
                     .Where(location => location != null
                         && location.Item != null
@@ -410,20 +413,20 @@ namespace Grimoire.Game
                 if (candidates.Count == 0)
                     break;
 
-                MapItemLocation destination = candidates[0];
-                visitedCells.Add(destination.CellName);
+                string destinationCell = candidates[0].CellName;
+                visitedCells.Add(destinationCell);
 
-                if (!string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase))
                 {
-                    Cell cellInfo = World.CellInfo(destination.CellName);
+                    Cell cellInfo = World.CellInfo(destinationCell);
                     string pad = cellInfo?.Pads?.FirstOrDefault();
                     if (string.IsNullOrWhiteSpace(pad))
                         pad = "Spawn";
 
-                    Player.MoveToCell(destination.CellName, pad);
+                    Player.MoveToCell(destinationCell, pad);
                     int waitCount = 0;
                     while (keepRunning()
-                        && !string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase)
                         && waitCount++ < 30)
                     {
                         await Task.Delay(250);
@@ -432,51 +435,56 @@ namespace Grimoire.Game
 
                 if (!keepRunning() || objectiveComplete())
                     break;
-
-                if (!string.Equals(Player.Cell, destination.CellName, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                // IDs can be regenerated between GetCellInfo and entering the cell.
-                // Always use the live ID returned for the current cell.
-                List<MapItem> liveItems = World.MapItems;
-                MapItem liveTarget = liveItems.FirstOrDefault(item =>
-                    item != null
-                    && item.QuestID == questId
-                    && isRequiredItem(item));
-
-                if (liveTarget == null)
-                    continue;
-
-                int actionWait = 0;
-                while (keepRunning()
-                    && !World.IsActionAvailable(LockActions.GetMapItem)
-                    && actionWait++ < 20)
-                {
-                    await Task.Delay(250);
-                }
-
-                if (!keepRunning() || objectiveComplete())
-                    break;
-
-                if (!World.IsActionAvailable(LockActions.GetMapItem))
-                    continue;
-
-                Player.GetMapItem(liveTarget.ID);
-                collectedAttempts++;
-
-                // Give the server time to update the quest/inventory state.
-                int verifyWait = 0;
+                // A cell may contain several required objects (for example, multiple
+                // clickable quest creatures). Re-read after each click and avoid
+                // clicking the same live object repeatedly.
+                var clickedIds = new HashSet<int>();
+                int cellAttempts = 0;
                 while (keepRunning()
                     && !objectiveComplete()
-                    && verifyWait++ < 12)
+                    && collectedAttempts < maxItemAttempts
+                    && cellAttempts++ < 20)
                 {
-                    await Task.Delay(250);
+                    MapItem liveTarget = World.MapItems.FirstOrDefault(item =>
+                        item != null
+                        && item.ID > 0
+                        && item.QuestID == questId
+                        && !clickedIds.Contains(item.ID)
+                        && isRequiredItem(item));
+
+                    if (liveTarget == null)
+                        break;
+
+                    int actionWait = 0;
+                    while (keepRunning()
+                        && !World.IsActionAvailable(LockActions.GetMapItem)
+                        && actionWait++ < 20)
+                    {
+                        await Task.Delay(250);
+                    }
+
+                    if (!keepRunning() || objectiveComplete())
+                        break;
+                    if (!World.IsActionAvailable(LockActions.GetMapItem))
+                        break;
+
+                    clickedIds.Add(liveTarget.ID);
+                    Player.GetMapItem(liveTarget.ID);
+                    collectedAttempts++;
+
+                    int verifyWait = 0;
+                    while (keepRunning()
+                        && !objectiveComplete()
+                        && verifyWait++ < 12)
+                    {
+                        await Task.Delay(250);
+                    }
                 }
             }
 
-            // Restore the starting cell only when the objective remains incomplete
-            // and the bot is still running; otherwise leave the player at the last
-            // useful location for the next story action.
             if (keepRunning()
                 && !objectiveComplete()
                 && !string.IsNullOrWhiteSpace(originalCell)
