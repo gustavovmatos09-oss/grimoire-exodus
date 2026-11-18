@@ -174,6 +174,12 @@ namespace Grimoire.Game
 
         public static List<Monster> MonstersInMap => Flash.Call<List<Monster>>("MonstersInMap", new string[0]);
 
+        /// <summary>
+        /// Gets clickable map items exposed by the current cell's mapItem components.
+        /// The ActionScript GetMapItems callback returns ID, name, quest ID, item name and collect message.
+        /// </summary>
+        public static List<MapItem> MapItems => Flash.Call<List<MapItem>>("GetMapItems", new string[0]) ?? new List<MapItem>();
+
         public static List<Monster> Monsters =>
             Flash.Call<List<Monster>>("selectArrayObjects", "world.monsters", "objData") ?? new List<Monster>();
 
