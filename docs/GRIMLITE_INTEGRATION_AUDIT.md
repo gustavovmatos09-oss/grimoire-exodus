@@ -106,3 +106,15 @@ The ActionScript bridge `Quest.getQuestTree()` clones the AQW quest-tree object 
 - Neither field describes all monster-kill objectives or clickable map-item objectives.
 
 The C# `Quest` model now exposes `reqd` as `RequiredPrerequisites` using the existing `QuestReqConverter`. This is a data-model improvement only; it does not claim automatic objective discovery or complete story automation. Story profiles still need explicit, verified objective definitions for farm and map-click stages, plus runtime validation.
+
+
+## Story progression rule confirmed by user
+
+The Noobshire story manager must be non-member-first:
+- Never accept quests marked member-only (`bUpg` / `Quest.IsMemberOnly`).
+- Accept a quest only when the live AQW client reports it available for the current character (`IsAvailable`), and it is not already in progress.
+- If a story step is member-only or unavailable, skip it and continue searching for the next available non-member story step; do not stop the entire story because of a member gate.
+- Keep already-in-progress quests and finish them rather than skipping them.
+- Do not accept every available side quest indiscriminately: selection must stay within the configured story progression, not the entire quest tree.
+
+The C# quest model now exposes `Quest.CanAccept`, which combines the member check, in-progress check, and live client `IsAvailable` result. The future story runner must use this guard before calling `Accept`. This guard is implemented but not yet wired to an autonomous story manager.
