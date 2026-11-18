@@ -16,7 +16,7 @@
       },
       {
         "$type": "Grimoire.Botting.Commands.Misc.CmdLog, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Text": "[NOOBShIRE] Campanha de combate iniciada em {MAP}, sala {ROOM_NUM}, celula {CELL}. Nao altere de mapa durante o bot.",
+        "Text": "[NOOBShIRE] Iniciando quest 32 - Defend the Rats. Mapa={MAP} | Sala={ROOM_NUM} | Celula={CELL} | Nivel={LEVEL}",
         "Debug": false
       },
       {
@@ -46,7 +46,7 @@
       },
       {
         "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q35_LOOP"
+        "Label": "Q32_DONE"
       },
       {
         "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
@@ -54,143 +54,16 @@
       },
       {
         "$type": "Grimoire.Botting.Commands.Misc.CmdLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Name": "Q35_LOOP"
+        "Name": "Q32_DONE"
       },
       {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestNotInProgress, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest is not in progress",
-        "Value1": "35"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Quest.CmdAcceptQuest2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "QuestID": "35"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Combat.CmdKill, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Monster": "Kittarian Mouse Eater",
-        "Packet": false
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestCompleted, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest can be turned in",
-        "Value1": "35"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q36_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q35_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Name": "Q36_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestNotInProgress, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest is not in progress",
-        "Value1": "36"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Quest.CmdAcceptQuest2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "QuestID": "36"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Combat.CmdKill, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Monster": "Kittarian Mouse Flayer",
-        "Packet": false
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestCompleted, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest can be turned in",
-        "Value1": "36"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q37_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q36_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Name": "Q37_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestNotInProgress, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest is not in progress",
-        "Value1": "37"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Quest.CmdAcceptQuest2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "QuestID": "37"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Combat.CmdKill, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Monster": "Horc Noob",
-        "Packet": false
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestCompleted, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest can be turned in",
-        "Value1": "37"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q38_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q37_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Name": "Q38_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestNotInProgress, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest is not in progress",
-        "Value1": "38"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Quest.CmdAcceptQuest2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "QuestID": "38"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Combat.CmdKill, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Monster": "Horc Trainer",
-        "Packet": false
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.Statements.CmdQuestCompleted, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Tag": "Quest",
-        "Text": "Quest can be turned in",
-        "Value1": "38"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q_DONE"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdGotoLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Label": "Q38_LOOP"
-      },
-      {
-        "$type": "Grimoire.Botting.Commands.Misc.CmdLabel, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Name": "Q_DONE"
+        "$type": "Grimoire.Botting.Commands.Quest.CmdCompleteQuest2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "QuestID": "32",
+        "ItemID": ""
       },
       {
         "$type": "Grimoire.Botting.Commands.Misc.CmdLog, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-        "Text": "[NOOBShIRE] Etapa de combate concluida: quests 32, 35, 36, 37 e 38 foram entregues. Faltam as etapas com objetos/interacoes: quest 33 (Baby Rats + Horc Cheese) e quest 39 (Rat Leader + Horc Noob).",
+        "Text": "[NOOBShIRE] Quest 32 entregue. Proxima etapa da campanha: quest 33 (Baby Rats + Horc Cheese), que exige interacao com objetos do mapa. O bot vai parar aqui.",
         "Debug": false
       },
       {
@@ -199,7 +72,7 @@
     ]
   },
   "Author": "OpenAI - AQW Farm Edition",
-  "Description": "Beta de combate das quests de Rolith em Noobshire. Executa as quests 32, 35, 36, 37 e 38 em sala privada 2525. Nao inclui ainda as quests interativas 33 e 39; nao e a historia completa.",
+  "Description": "Beta 01 da campanha Noobshire: executa somente a quest 32 Defend the Rats (8 Piece of Cloth), entrega e para. A quest 33 exige objetos/interacao e sera implementada depois de validar a navegacao.",
   "BotDelay": 1000,
   "ExitCombatBeforeQuest": true,
   "ExitCombatBeforeStop": true
