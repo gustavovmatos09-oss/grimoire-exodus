@@ -46,13 +46,42 @@ namespace Grimoire.Botting.Commands.Combat
                 try
                 {
                     BotData.BotState = BotData.State.Combat;
+                    string monsterName = instance.Value(Monster);
+
+                    // First honor the configured bot cell. If the target is not there,
+                    // scan live monsters in the current map and move to the cell that contains it.
                     BotUtilities.MoveToBotCell();
                     await instance.WaitUntil(
-                        () => World.IsMonsterAvailable(instance.Value(Monster)),
+                        () => World.IsMonsterAvailable(monsterName),
                         () => instance.IsRunning && !cts.IsCancellationRequested,
-                        16,
+                        6,
                         500);
-                    if (!instance.IsRunning || !World.IsMonsterAvailable(instance.Value(Monster)))
+
+                    if (instance.IsRunning && !World.IsMonsterAvailable(monsterName))
+                    {
+                        string targetCell = World.Monsters?
+                            .Where(m => m != null && m.Alive
+                                && string.Equals(m.Name, monsterName, StringComparison.OrdinalIgnoreCase)
+                                && !string.IsNullOrWhiteSpace(m.Cell))
+                            .Select(m => m.Cell)
+                            .FirstOrDefault();
+
+                        if (!string.IsNullOrWhiteSpace(targetCell)
+                            && !string.Equals(targetCell, Player.Cell, StringComparison.OrdinalIgnoreCase))
+                        {
+                            BotData.BotCell = targetCell;
+                            BotData.BotPad = "Spawn";
+                            Player.MoveToCell(targetCell, "Spawn");
+                            await instance.WaitUntil(
+                                () => string.Equals(Player.Cell, targetCell, StringComparison.OrdinalIgnoreCase)
+                                    && World.IsMonsterAvailable(monsterName),
+                                () => instance.IsRunning && !cts.IsCancellationRequested,
+                                20,
+                                500);
+                        }
+                    }
+
+                    if (!instance.IsRunning || !World.IsMonsterAvailable(monsterName))
                         return;
 
                     if (instance.Configuration.WaitForAllSkills)

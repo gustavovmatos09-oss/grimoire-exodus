@@ -1,0 +1,42 @@
+name: Validate Grimoire Exodus
+
+on:
+  push:
+    branches:
+      - feature/grimlite-functionality-audit
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Release
+        shell: pwsh
+        run: .\exodus.ps1 build -Configuration Release
+
+      - name: Upload installable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grimoire-Exodus-Noobshire-Bot
+          path: |
+            app/bin/Release/**
+            bots/Noobshire-Story-Full.gbot
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run bot compatibility tests
+        shell: pwsh
+        run: |
+          .\tests\Test-LegacyGbotCompatibility.ps1 -Configuration Release
+          .\tests\Test-KillForRecovery.ps1 -Configuration Release
