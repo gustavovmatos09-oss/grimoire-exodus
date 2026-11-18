@@ -360,7 +360,7 @@
     <Compile Include="Grimoire.Game.Data\InventoryItemCombined.cs" />
     <Compile Include="Grimoire.Game.Data\ItemBase.cs" />
     <Compile Include="Grimoire.Game.Data\Monster.cs" />
-    <Compile Include="Grimoire.Game.Data\MapItem.cs" />
+
     <Compile Include="Grimoire.Game.Data\Avatar.cs" />
     <Compile Include="Grimoire.Game.Data\Quest.cs" />
     <Compile Include="Grimoire.Game.Data\QuestInfo.cs" />
