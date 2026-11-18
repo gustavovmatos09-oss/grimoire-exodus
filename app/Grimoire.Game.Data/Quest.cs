@@ -42,6 +42,18 @@ namespace Grimoire.Game.Data
             set;
         } //= new List<ItemBase>();
 
+        /// <summary>
+        /// Items listed by the AQW client under quest "reqd". These are
+        /// prerequisite/validation items, not the quest's turn-in objectives.
+        /// </summary>
+        [JsonProperty("reqd")]
+        [JsonConverter(typeof(QuestReqConverter))]
+        public List<ItemBase> RequiredPrerequisites
+        {
+            get;
+            set;
+        }
+
         //[JsonProperty("oReqd")]
         //[JsonConverter(typeof(QuestReqConverter))]
         //public List<ItemBase> oReqd
