@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/grimlite-functionality-audit
+      - feature/swordhaven-rank10-bot
   pull_request:
     branches:
       - main
@@ -32,6 +33,7 @@ jobs:
           path: |
             app/bin/Release/**
             bots/Noobshire-Story-Full.gbot
+            bots/Swordhaven-Rank10.gbot
           if-no-files-found: error
           retention-days: 14
 
