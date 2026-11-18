@@ -1,4 +1,4 @@
-name: Validate Grimoire Exodus
+name: Build Grimoire Exodus Bots
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,21 +25,27 @@ jobs:
 
       - name: Build Release
         shell: pwsh
-        run: .\exodus.ps1 build -Configuration Release
-
-      - name: Upload installable build
-        uses: actions/upload-artifact@v4
-        with:
-          name: Grimoire-Exodus-Noobshire-Bot
-          path: |
-            app/bin/Release/**
-            bots/Noobshire-Story-Full.gbot
-            bots/Swordhaven-Rank10.gbot
-          if-no-files-found: error
-          retention-days: 14
+        run: .\\exodus.ps1 build -Configuration Release
 
       - name: Run bot compatibility tests
         shell: pwsh
         run: |
-          .\tests\Test-LegacyGbotCompatibility.ps1 -Configuration Release
-          .\tests\Test-KillForRecovery.ps1 -Configuration Release
+          .\\tests\\Test-LegacyGbotCompatibility.ps1 -Configuration Release
+          .\\tests\\Test-KillForRecovery.ps1 -Configuration Release
+
+      - name: Package installable build and bot profiles
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Path app/bin/Release/* -Destination dist -Recurse -Force
+          New-Item -ItemType Directory -Force -Path dist/bots | Out-Null
+          Copy-Item bots/Noobshire-Story-Full.gbot, bots/Swordhaven-Rank10.gbot -Destination dist/bots -Force
+          Compress-Archive -Path dist/* -DestinationPath Grimoire-Exodus-Bots.zip -Force
+
+      - name: Upload ready-to-download package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grimoire-Exodus-Bots
+          path: Grimoire-Exodus-Bots.zip
+          if-no-files-found: error
+          retention-days: 30
