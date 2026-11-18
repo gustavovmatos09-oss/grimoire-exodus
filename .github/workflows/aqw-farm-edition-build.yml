@@ -1,0 +1,40 @@
+name: AQW Farm Edition - Build and compatibility
+
+on:
+  push:
+    branches:
+      - feature/aqw-farm-advanced
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Grimoire and validate legacy GBots
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Release
+        shell: pwsh
+        run: .\\exodus.ps1 build -Configuration Release
+
+      - name: Run legacy GBot compatibility test
+        shell: pwsh
+        run: .\\tests\\Test-LegacyGbotCompatibility.ps1 -Configuration Release
+
+      - name: Upload test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grimoire-AQW-Farm-Edition-test
+          path: |
+            app/bin/Release/**
+          if-no-files-found: error
+          retention-days: 14
