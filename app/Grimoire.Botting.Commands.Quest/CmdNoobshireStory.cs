@@ -59,7 +59,7 @@ namespace Grimoire.Botting.Commands.Quest
                 if (!instance.IsRunning)
                     return;
 
-                Quest quest = await LoadQuest(instance, step.QuestId);
+                Grimoire.Game.Data.Quest quest = await LoadQuest(instance, step.QuestId);
                 if (quest == null)
                 {
                     Log("Could not load quest " + step.QuestId + " (" + step.Title + "). Stopping to avoid unsafe progression.");
@@ -164,9 +164,9 @@ namespace Grimoire.Botting.Commands.Quest
             Log("Noobshire free Rolith story sequence finished or all remaining unavailable steps were skipped.");
         }
 
-        private static async Task<Quest> LoadQuest(IBotEngine instance, int questId)
+        private static async Task<Grimoire.Game.Data.Quest> LoadQuest(IBotEngine instance, int questId)
         {
-            Quest quest = Player.Quests.LoadedQuests.FirstOrDefault(q => q.Id == questId);
+            Grimoire.Game.Data.Quest quest = Player.Quests.LoadedQuests.FirstOrDefault(q => q.Id == questId);
             if (quest != null)
                 return quest;
 
