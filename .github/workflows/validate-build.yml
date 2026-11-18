@@ -25,6 +25,16 @@ jobs:
         shell: pwsh
         run: .\exodus.ps1 build -Configuration Release
 
+      - name: Upload installable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grimoire-Exodus-Noobshire-Bot
+          path: |
+            app/bin/Release/**
+            bots/Noobshire-Story-Full.gbot
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Run bot compatibility tests
         shell: pwsh
         run: |
