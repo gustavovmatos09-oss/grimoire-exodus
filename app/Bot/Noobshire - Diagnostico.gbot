@@ -1,0 +1,32 @@
+{
+  "$type": "Grimoire.Botting.Configuration, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+  "Commands": {
+    "$type": "System.Collections.Generic.List`1[[Grimoire.Botting.IBotCommand, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+    "$values": [
+      {
+        "$type": "Grimoire.Botting.Commands.Map.CmdJoin2, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Map": "noobshire",
+        "Room": "2525",
+        "Cell": "Enter",
+        "Pad": "Left"
+      },
+      {
+        "$type": "Grimoire.Botting.Commands.Misc.CmdDelay, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Delay": 2500
+      },
+      {
+        "$type": "Grimoire.Botting.Commands.Misc.CmdLog, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Text": "[NOOBShIRE] Mapa={MAP} | Sala={ROOM_NUM} | RoomID={ROOM_ID} | Celula={CELL} | Pad={PAD} | Nivel={LEVEL} | HP={HEALTH} | MP={MANA}",
+        "Debug": false
+      },
+      {
+        "$type": "Grimoire.Botting.Commands.Misc.CmdStop, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+      }
+    ]
+  },
+  "Author": "OpenAI - AQW Farm Edition",
+  "Description": "Diagnostico inicial da campanha Noobshire. Entra em noobshire-2525, registra mapa, sala, celula e status do personagem; nao inicia combate.",
+  "BotDelay": 1000,
+  "ExitCombatBeforeQuest": true,
+  "ExitCombatBeforeStop": true
+}
