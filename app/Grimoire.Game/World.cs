@@ -238,15 +238,15 @@ namespace Grimoire.Game
         public static Cell CellInfo(string cell) => Flash.Call<Cell>("GetCellInfo", cell);
 
         /// <summary>
-        /// Scans every named cell in the current map and returns its clickable quest/map items.
-        /// Item IDs are deduplicated because AQW maps may expose the same component more than once.
+        /// Scans every named cell and returns map items together with the cell where each was found.
+        /// The cell is required because map-item IDs may only be actionable after entering that cell.
         /// </summary>
-        public static List<MapItem> MapItemsInMap
+        public static List<MapItemLocation> MapItemLocationsInMap
         {
             get
             {
-                var result = new List<MapItem>();
-                var seen = new HashSet<int>();
+                var result = new List<MapItemLocation>();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (string cellName in Cells ?? Array.Empty<string>())
                 {
                     if (string.IsNullOrWhiteSpace(cellName)
@@ -260,8 +260,13 @@ namespace Grimoire.Game
 
                     foreach (MapItem item in cell.MapItems)
                     {
-                        if (item != null && item.ID > 0 && seen.Add(item.ID))
-                            result.Add(item);
+                        if (item == null || item.ID <= 0)
+                            continue;
+
+                        // Include the cell in the key: IDs are not guaranteed to be globally unique.
+                        string key = cellName + ":" + item.ID;
+                        if (seen.Add(key))
+                            result.Add(new MapItemLocation { CellName = cellName, Item = item });
                     }
                 }
                 return result;
@@ -269,12 +274,30 @@ namespace Grimoire.Game
         }
 
         /// <summary>
+        /// Backwards-compatible flattened view of all map items.
+        /// </summary>
+        public static List<MapItem> MapItemsInMap
+        {
+            get { return MapItemLocationsInMap.Select(location => location.Item).ToList(); }
+        }
+
+        /// <summary>
+        /// Returns map items tagged for the specified quest, preserving their cell locations.
+        /// </summary>
+        public static List<MapItemLocation> MapItemLocationsForQuest(int questId)
+        {
+            return MapItemLocationsInMap
+                .Where(location => location.Item.QuestID == questId)
+                .ToList();
+        }
+
+        /// <summary>
         /// Returns only clickable map items tagged for the specified quest.
         /// </summary>
         public static List<MapItem> MapItemsForQuest(int questId)
         {
-            return MapItemsInMap
-                .Where(item => item.QuestID == questId)
+            return MapItemLocationsForQuest(questId)
+                .Select(location => location.Item)
                 .ToList();
         }
 
