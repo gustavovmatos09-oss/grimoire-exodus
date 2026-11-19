@@ -34,9 +34,12 @@ namespace Grimoire.Botting.Commands.Quest
         private static readonly Step[] Steps =
         {
             new Step { QuestId = 3065, Title = "Boy Fiends and Ghoul Fiends", Monster = "Dungeon Fiend",
-                KillCounter = true },
-            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider", KillCounter = true },
-            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith", KillCounter = true }
+                ItemOne = "Dungeon Fiend Hair Bow", QuantityOne = 5,
+                ItemTwo = "Dungeon Fiend Bow Tie", QuantityTwo = 5 },
+            new Step { QuestId = 3066, Title = "Arachnid Eradication", Monster = "Castle Spider",
+                ItemOne = "Eradicated Archnid", QuantityOne = 10 },
+            new Step { QuestId = 3067, Title = "Apparition Nation", Monster = "Castle Wraith",
+                ItemOne = "Castle Wraith Defeated", QuantityOne = 10 }
         };
 
         private const int MaxKillsPerObjective = 300;
@@ -184,7 +187,9 @@ namespace Grimoire.Botting.Commands.Quest
         {
             int inventoryQuantity = Player.Inventory.Items?.Where(i => i != null &&
                 string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase)).Sum(i => i.Quantity) ?? 0;
-            return inventoryQuantity;
+            int temporaryQuantity = Player.TempInventory.Items?.Where(i => i != null &&
+                string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase)).Sum(i => i.Quantity) ?? 0;
+            return Math.Max(inventoryQuantity, temporaryQuantity);
         }
 
         private static async Task<bool> WaitFor(IBotEngine instance, Func<bool> condition, int checks)
