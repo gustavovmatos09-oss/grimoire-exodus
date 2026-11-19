@@ -105,12 +105,34 @@ namespace Grimoire.Botting.Commands.Quest
                     while (instance.IsRunning && Player.IsLoggedIn && !ready && kills < MaxKillsPerObjective)
                     {
                         int before = GetRelevantProgress(step);
-                        // Do not gate combat on the current-cell list. CmdKill has its own
-                        // map-wide target lookup and cell movement; gating here prevents that.
+                        // Explicitly resolve and enter the target cell before invoking CmdKill.
+                        // CmdKill's MoveToBotCell() otherwise returns to the profile's initial cell.
+                        string targetCell = World.Monsters?
+                            .Where(m => m != null && m.Alive && string.Equals(m.Name, step.Monster, StringComparison.OrdinalIgnoreCase)
+                                && !string.IsNullOrWhiteSpace(m.Cell))
+                            .Select(m => m.Cell).FirstOrDefault();
+                        if (string.IsNullOrWhiteSpace(targetCell))
+                        {
+                            Log("Não encontrei célula ativa com " + step.Monster + " no mapa. Tentando novamente em 2 segundos.");
+                            await Task.Delay(2000);
+                            continue;
+                        }
+                        if (!string.Equals(Player.Cell, targetCell, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Log("Movendo da célula " + Player.Cell + " para " + targetCell + " para enfrentar " + step.Monster + ".");
+                            BotData.BotCell = targetCell;
+                            BotData.BotPad = "Spawn";
+                            Player.MoveToCell(targetCell, "Spawn");
+                            await instance.WaitUntil(() => string.Equals(Player.Cell, targetCell, StringComparison.OrdinalIgnoreCase),
+                                () => instance.IsRunning && Player.IsLoggedIn, 15, 500);
+                        }
+                        BotData.BotCell = targetCell;
+                        BotData.BotPad = "Spawn";
+                        if (!instance.IsRunning || !Player.IsLoggedIn) return;
                         var available = World.AvailableMonsters;
                         string names = available == null ? "(lista nula)" :
                             string.Join(", ", available.Where(m => m != null).Select(m => m.Name + "@" + m.Cell).Distinct().Take(30));
-                        Log("Alvos na célula atual: " + names + ". Deixando CmdKill localizar e alcançar o alvo.");
+                        Log("Célula de combate " + Player.Cell + ". Alvos: " + names);
                         CmdKill kill = new CmdKill { Monster = step.Monster };
                         Log("Disparando CmdKill para " + step.Monster + ".");
                         await kill.ExecuteForKillFor(instance, () =>
