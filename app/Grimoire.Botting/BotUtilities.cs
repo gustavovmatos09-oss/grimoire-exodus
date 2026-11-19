@@ -83,13 +83,28 @@ namespace Grimoire.Botting
             BotData.BotQuests = new List<int>();
             foreach (IBotCommand command in instance.Configuration.Commands)
             {
-                if (command.GetType().ToString().Contains("Quest"))
+                if (command != null && command.GetType().ToString().Contains("Quest"))
                 {
-                    commandProperty = command.GetType().GetProperty("Quest") ?? command.GetType().GetProperty("QuestID") ?? command.GetType().GetProperty("Value1");
-                    if (!commandProperty.GetValue(command).ToString().StartsWith("[") && !string.IsNullOrWhiteSpace(commandProperty.GetValue(command).ToString()))
+                    commandProperty = command.GetType().GetProperty("Quest")
+                        ?? command.GetType().GetProperty("QuestID")
+                        ?? command.GetType().GetProperty("Value1");
+
+                    // Custom quest automation commands may live in the Quest namespace
+                    // without exposing a numeric Quest/QuestID/Value1 property.
+                    // They are not legacy single-quest commands and must be skipped here.
+                    if (commandProperty == null)
+                        continue;
+
+                    object rawValue = commandProperty.GetValue(command);
+                    if (rawValue == null)
+                        continue;
+
+                    string rawText = rawValue.ToString();
+                    if (!rawText.StartsWith("[") && !string.IsNullOrWhiteSpace(rawText))
                     {
-                        string value = instance.Value(commandProperty.GetValue(command).ToString());
-                        BotData.BotQuests.Add(int.Parse(value));
+                        string value = instance.Value(rawText);
+                        if (int.TryParse(value, out int questId))
+                            BotData.BotQuests.Add(questId);
                     }
                 }
             }
