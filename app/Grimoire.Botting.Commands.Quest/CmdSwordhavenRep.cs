@@ -105,7 +105,18 @@ namespace Grimoire.Botting.Commands.Quest
                     while (instance.IsRunning && Player.IsLoggedIn && !ready && kills < MaxKillsPerObjective)
                     {
                         int before = GetRelevantProgress(step);
+                        var available = World.AvailableMonsters;
+                        string names = available == null ? "(lista nula)" :
+                            string.Join(", ", available.Where(m => m != null).Select(m => m.Name + "@" + m.Cell).Distinct().Take(30));
+                        Log("Alvos na sala: " + names);
+                        if (available == null || !available.Any(m => m != null && m.Alive &&
+                            string.Equals(m.Name, step.Monster, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            Log("Alvo '" + step.Monster + "' não está disponível na célula atual; não vou disparar um kill vazio.");
+                            return;
+                        }
                         CmdKill kill = new CmdKill { Monster = step.Monster };
+                        Log("Disparando CmdKill para " + step.Monster + ".");
                         await kill.ExecuteForKillFor(instance, () =>
                             Player.Quests.CanComplete(step.QuestId) || GetRelevantProgress(step) > before);
                         if (!instance.IsRunning || !Player.IsLoggedIn) return;
