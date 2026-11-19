@@ -496,9 +496,13 @@ namespace Grimoire.Botting
 
                     IndexChanged?.Invoke(Index);
                     cmd = config.Commands[Index];
+                    LogForm.Instance.AppendBot($"[{DateTime.Now:hh:mm:ss}] [TRACE] Iniciando comando {Index}: {cmd?.GetType().FullName ?? "null"}.\r\n");
+                    if (cmd == null)
+                        throw new InvalidOperationException("O comando no índice " + Index + " está nulo.");
                     if (cmd.ShouldLog())
                         LogForm.Instance.AppendBot($"[{DateTime.Now:hh:mm:ss}] (Index {Index}) {cmd.LogSpecificCmd()}{cmd.ToString()}.\r\n");
                     await cmd.Execute(this);
+                    LogForm.Instance.AppendBot($"[{DateTime.Now:hh:mm:ss}] [TRACE] Comando {Index} concluído.\r\n");
                     token.ThrowIfCancellationRequested();
                     if (config.BotDelay > 0 && (!config.SkipDelayIndexIf || (config.SkipDelayIndexIf && cmd.RequiresDelay())))
                     {
@@ -526,8 +530,8 @@ namespace Grimoire.Botting
             run?.Cancellation.Cancel(false);
             BotUtilities.ActiveBot = false;
             string message = ex?.Message ?? "Unknown bot error";
-            LogForm.Instance.AppendDebug($"[{DateTime.Now:hh:mm:ss}] Bot stopped after an error: {message}\r\n");
-            LogForm.Instance.AppendBot($"[{DateTime.Now:hh:mm:ss}] Bot error: {message}\r\n");
+            LogForm.Instance.AppendDebug($"[{DateTime.Now:hh:mm:ss}] Bot stopped after an error: {message}\r\n{ex}\r\n");
+            LogForm.Instance.AppendBot($"[{DateTime.Now:hh:mm:ss}] Bot error: {message}\r\n{ex}\r\n");
             if (run != null)
             {
                 ScheduleLifecycle(() => StopRunAsync(bankItems: false));

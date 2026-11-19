@@ -1,0 +1,20 @@
+{
+  "$type": "Grimoire.Botting.Configuration, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+  "Commands": {
+    "$type": "System.Collections.Generic.List`1[[Grimoire.Botting.IBotCommand, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+    "$values": [
+      {
+        "$type": "Grimoire.Botting.Commands.Quest.CmdSwordhavenRep, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+      }
+    ]
+  },
+  "Author": "Grimoire Exodus Community",
+  "Description": "Swordhaven reputation farm: private Castle room, repeats quests 3065-3067, stops at Rank 10.",
+  "BotDelay": 1000,
+  "SkillDelay": 500,
+  "RelogDelay": 1000,
+  "WalkSpeed": 8,
+  "RestMp": 50,
+  "RestHp": 50,
+  "DropDelay": 1000
+}

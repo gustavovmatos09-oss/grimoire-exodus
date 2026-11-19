@@ -185,6 +185,15 @@ namespace Grimoire.Game.Data
 
     }
 
+    /// <summary>
+    /// A clickable map item and the cell in which it was discovered.
+    /// </summary>
+    public class MapItemLocation
+    {
+        public string CellName { get; set; }
+        public MapItem Item { get; set; }
+    }
+
     public class MapItem
     {
         /// <summary>

@@ -1,0 +1,15 @@
+{
+  "$type": "Grimoire.Botting.Configuration, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+  "Commands": {
+    "$type": "System.Collections.Generic.List`1[[Grimoire.Botting.IBotCommand, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+    "$values": [
+      {
+        "$type": "Grimoire.Botting.Commands.Quest.CmdNoobshireStory, Grimoire, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+      }
+    ]
+  },
+  "Author": "Grimoire Exodus Community",
+  "Description": "Automatic free Noobshire story progression for fresh or existing accounts. Skips Legend-only quest 40 and resumes in-progress story quests.",
+  "BotDelay": 1000,
+  "SkillDelay": 500
+}

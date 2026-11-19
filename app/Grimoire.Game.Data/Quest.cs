@@ -42,6 +42,18 @@ namespace Grimoire.Game.Data
             set;
         } //= new List<ItemBase>();
 
+        /// <summary>
+        /// Items listed by the AQW client under quest "reqd". These are
+        /// prerequisite/validation items, not the quest's turn-in objectives.
+        /// </summary>
+        [JsonProperty("reqd")]
+        [JsonConverter(typeof(QuestReqConverter))]
+        public List<ItemBase> RequiredPrerequisites
+        {
+            get;
+            set;
+        }
+
         //[JsonProperty("oReqd")]
         //[JsonConverter(typeof(QuestReqConverter))]
         //public List<ItemBase> oReqd
@@ -193,6 +205,21 @@ namespace Grimoire.Game.Data
             }
         }
 
+        /// <summary>
+        /// True only when this quest is not member-only and the AQW client
+        /// currently reports it as available to this character.
+        /// Story automation must use this guard before accepting a quest.
+        /// </summary>
+        public bool CanAccept
+        {
+            get
+            {
+                return !IsMemberOnly
+                    && !IsInProgress
+                    && Flash.Call<bool>("IsAvailable", new string[1] { Id.ToString() });
+            }
+        }
+
         public void Accept()
         {
             Flash.Call("Accept", Id.ToString());
@@ -242,6 +269,8 @@ namespace Grimoire.Game.Data
         public bool ShouldSerializeIsInProgress => false;
 
         public bool ShouldSerializeCanComplete => false;
+
+        public bool ShouldSerializeCanAccept => false;
         #endregion
     }
 }

@@ -1,0 +1,64 @@
+name: Build Grimoire Exodus Bots
+
+on:
+  push:
+    branches:
+      - feature/grimlite-functionality-audit
+      - feature/swordhaven-rank10-bot
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Validate Swordhaven bot profile defaults
+        shell: pwsh
+        run: |
+          $profile = Get-Content bots/Swordhaven-Rank10.gbot -Raw | ConvertFrom-Json
+          foreach ($field in @('SkillDelay','RelogDelay','BotDelay','WalkSpeed','RestMp','RestHp','DropDelay')) {
+            if ($null -eq $profile.$field -or [decimal]$profile.$field -le 0) {
+              throw "Invalid numeric profile field: $field"
+            }
+          }
+          if ($profile.Commands.'$values'.Count -ne 1 -or $profile.Commands.'$values'[0].'$type' -notlike '*CmdSwordhavenRep*') {
+            throw 'Swordhaven custom command is missing from the profile.'
+          }
+
+      - name: Build Release
+        shell: pwsh
+        run: .\\exodus.ps1 build -Configuration Release
+
+      - name: Run bot compatibility tests
+        shell: pwsh
+        run: |
+          .\\tests\\Test-LegacyGbotCompatibility.ps1 -Configuration Release
+          .\\tests\\Test-KillForRecovery.ps1 -Configuration Release
+
+      - name: Package installable build and bot profiles
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Path app/bin/Release/* -Destination dist -Recurse -Force
+          New-Item -ItemType Directory -Force -Path dist/bots | Out-Null
+          Copy-Item bots/Noobshire-Story-Full.gbot, bots/Swordhaven-Rank10.gbot -Destination dist/bots -Force
+          Compress-Archive -Path dist/* -DestinationPath Grimoire-Exodus-Bots.zip -Force
+
+      - name: Upload ready-to-download package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grimoire-Exodus-Bots
+          path: Grimoire-Exodus-Bots.zip
+          if-no-files-found: error
+          retention-days: 30

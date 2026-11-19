@@ -174,6 +174,12 @@ namespace Grimoire.Game
 
         public static List<Monster> MonstersInMap => Flash.Call<List<Monster>>("MonstersInMap", new string[0]);
 
+        /// <summary>
+        /// Gets clickable map items exposed by the current cell's mapItem components.
+        /// The ActionScript GetMapItems callback returns ID, name, quest ID, item name and collect message.
+        /// </summary>
+        public static List<MapItem> MapItems => Flash.Call<List<MapItem>>("GetMapItems", new string[0]) ?? new List<MapItem>();
+
         public static List<Monster> Monsters =>
             Flash.Call<List<Monster>>("selectArrayObjects", "world.monsters", "objData") ?? new List<Monster>();
 
@@ -230,6 +236,70 @@ namespace Grimoire.Game
         public static bool mapLoadInProgress => Flash.Instance.GetGameObject<bool>("world.mapLoadInProgress");
 
         public static Cell CellInfo(string cell) => Flash.Call<Cell>("GetCellInfo", cell);
+
+        /// <summary>
+        /// Scans every named cell and returns map items together with the cell where each was found.
+        /// The cell is required because map-item IDs may only be actionable after entering that cell.
+        /// </summary>
+        public static List<MapItemLocation> MapItemLocationsInMap
+        {
+            get
+            {
+                var result = new List<MapItemLocation>();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (string cellName in Cells ?? Array.Empty<string>())
+                {
+                    if (string.IsNullOrWhiteSpace(cellName)
+                        || cellName.Equals("Wait", StringComparison.OrdinalIgnoreCase)
+                        || cellName.Equals("Blank", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    Cell cell = CellInfo(cellName);
+                    if (cell?.MapItems == null)
+                        continue;
+
+                    foreach (MapItem item in cell.MapItems)
+                    {
+                        if (item == null || item.ID <= 0)
+                            continue;
+
+                        // Include the cell in the key: IDs are not guaranteed to be globally unique.
+                        string key = cellName + ":" + item.ID;
+                        if (seen.Add(key))
+                            result.Add(new MapItemLocation { CellName = cellName, Item = item });
+                    }
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Backwards-compatible flattened view of all map items.
+        /// </summary>
+        public static List<MapItem> MapItemsInMap
+        {
+            get { return MapItemLocationsInMap.Select(location => location.Item).ToList(); }
+        }
+
+        /// <summary>
+        /// Returns map items tagged for the specified quest, preserving their cell locations.
+        /// </summary>
+        public static List<MapItemLocation> MapItemLocationsForQuest(int questId)
+        {
+            return MapItemLocationsInMap
+                .Where(location => location.Item.QuestID == questId)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Returns only clickable map items tagged for the specified quest.
+        /// </summary>
+        public static List<MapItem> MapItemsForQuest(int questId)
+        {
+            return MapItemLocationsForQuest(questId)
+                .Select(location => location.Item)
+                .ToList();
+        }
 
         public static List<Cell> AllCellInfo => Flash.Call<List<Cell>>("GetAllPads", true);
 
@@ -298,4 +368,133 @@ namespace Grimoire.Game
             };
         }
     }
+    /// <summary>
+    /// Performs bounded, quest-scoped collection of clickable map items.
+    /// Callers must supply an item predicate and a live completion check so the
+    /// collector never clicks unrelated objects or assumes a click succeeded.
+    /// </summary>
+    public static class MapItemCollector
+    {
+        public static async Task<int> CollectForQuest(
+            int questId,
+            Func<MapItem, bool> isRequiredItem,
+            Func<bool> objectiveComplete,
+            Func<bool> keepRunning,
+            int maxCellVisits = 12,
+            int maxItemAttempts = 40)
+        {
+            if (questId <= 0)
+                throw new ArgumentOutOfRangeException("questId");
+            if (isRequiredItem == null)
+                throw new ArgumentNullException("isRequiredItem");
+            if (objectiveComplete == null)
+                throw new ArgumentNullException("objectiveComplete");
+            if (keepRunning == null)
+                throw new ArgumentNullException("keepRunning");
+
+            int collectedAttempts = 0;
+            var visitedCells = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string originalCell = Player.Cell;
+            string originalPad = Player.Pad;
+
+            while (keepRunning()
+                && !objectiveComplete()
+                && visitedCells.Count < maxCellVisits
+                && collectedAttempts < maxItemAttempts)
+            {
+                List<MapItemLocation> candidates = World.MapItemLocationsForQuest(questId)
+                    .Where(location => location != null
+                        && location.Item != null
+                        && !string.IsNullOrWhiteSpace(location.CellName)
+                        && isRequiredItem(location.Item)
+                        && !visitedCells.Contains(location.CellName))
+                    .ToList();
+
+                if (candidates.Count == 0)
+                    break;
+
+                string destinationCell = candidates[0].CellName;
+                visitedCells.Add(destinationCell);
+
+                if (!string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase))
+                {
+                    Cell cellInfo = World.CellInfo(destinationCell);
+                    string pad = cellInfo?.Pads?.FirstOrDefault();
+                    if (string.IsNullOrWhiteSpace(pad))
+                        pad = "Spawn";
+
+                    Player.MoveToCell(destinationCell, pad);
+                    int waitCount = 0;
+                    while (keepRunning()
+                        && !string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase)
+                        && waitCount++ < 30)
+                    {
+                        await Task.Delay(250);
+                    }
+                }
+
+                if (!keepRunning() || objectiveComplete())
+                    break;
+                if (!string.Equals(Player.Cell, destinationCell, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // A cell may contain several required objects (for example, multiple
+                // clickable quest creatures). Re-read after each click and avoid
+                // clicking the same live object repeatedly.
+                var clickedIds = new HashSet<int>();
+                int cellAttempts = 0;
+                while (keepRunning()
+                    && !objectiveComplete()
+                    && collectedAttempts < maxItemAttempts
+                    && cellAttempts++ < 20)
+                {
+                    MapItem liveTarget = World.MapItems.FirstOrDefault(item =>
+                        item != null
+                        && item.ID > 0
+                        && item.QuestID == questId
+                        && !clickedIds.Contains(item.ID)
+                        && isRequiredItem(item));
+
+                    if (liveTarget == null)
+                        break;
+
+                    int actionWait = 0;
+                    while (keepRunning()
+                        && !World.IsActionAvailable(LockActions.GetMapItem)
+                        && actionWait++ < 20)
+                    {
+                        await Task.Delay(250);
+                    }
+
+                    if (!keepRunning() || objectiveComplete())
+                        break;
+                    if (!World.IsActionAvailable(LockActions.GetMapItem))
+                        break;
+
+                    clickedIds.Add(liveTarget.ID);
+                    Player.GetMapItem(liveTarget.ID);
+                    collectedAttempts++;
+
+                    int verifyWait = 0;
+                    while (keepRunning()
+                        && !objectiveComplete()
+                        && verifyWait++ < 12)
+                    {
+                        await Task.Delay(250);
+                    }
+                }
+            }
+
+            if (keepRunning()
+                && !objectiveComplete()
+                && !string.IsNullOrWhiteSpace(originalCell)
+                && !string.Equals(Player.Cell, originalCell, StringComparison.OrdinalIgnoreCase))
+            {
+                Player.MoveToCell(originalCell, originalPad);
+            }
+
+            return collectedAttempts;
+        }
+    }
+
 }
